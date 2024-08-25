@@ -1,0 +1,24 @@
+services:
+  cli:
+    image: golang:1.23
+    container_name: go-migration
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: tail -f /dev/null
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  db:
+    image: postgres
+    container_name: postgres
+    volumes:
+      - ./.db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: mysecretpassword
+      PGDATA: /var/lib/postgresql/data/pgdata
