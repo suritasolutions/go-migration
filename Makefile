@@ -1,10 +1,10 @@
 .PHONY: up down bash
 
 up:
-	docker-compose up -d
+	docker compose up -d
 
 down:
-	docker-compose down -v
+	docker compose down -v
 
 bash:
-	docker-compose exec cli bash
+	docker compose exec cli bash
