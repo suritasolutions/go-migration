@@ -10,12 +10,13 @@ import (
 	"github.com/suritasolutions/go-migration/util"
 )
 
-func NewMigrationFile(ctx context.Context) *migrationFile {
-	return &migrationFile{ctx}
+func NewMigrationFile(ctx context.Context, logger util.Logger) MigrationFile {
+	return &migrationFile{ctx, logger}
 }
 
 type migrationFile struct {
-	ctx context.Context
+	ctx    context.Context
+	logger util.Logger
 }
 
 func (m *migrationFile) Create(database string, path string) {
@@ -32,21 +33,21 @@ func (m *migrationFile) createMigrationsFolder() {
 
 	if !os.IsNotExist(err) {
 		if m.ctx.Value("verbose").(bool) {
-			util.Print("yellow", "Migrations folder already exists!")
+			m.logger.Debug("Migrations folder already exists!")
 		}
 		return
 	}
 
 	if m.ctx.Value("verbose").(bool) {
-		util.Print("gray", "Creating migrations folder...")
+		m.logger.Debug("Creating migrations folder...")
 	}
 
 	os.Mkdir("migrations", 0755)
 
-	util.Print("green", "Migrations folder created successfully!")
+	m.logger.Success("Migrations folder created successfully!")
 }
 
-func (m *migrationFile) dbMigrationFolderExists(folder string) bool {
+func (m *migrationFile) DBMigrationFolderExists(folder string) bool {
 	if _, err := os.Stat("./migrations/" + folder); err != nil {
 		if os.IsNotExist(err) {
 			return false
@@ -61,18 +62,18 @@ func (m *migrationFile) createDatabaseFolder(folder string) {
 
 	if !os.IsNotExist(err) {
 		if m.ctx.Value("verbose").(bool) {
-			util.Print("yellow", "Migration folder already exists!")
+			m.logger.Debug("Migration folder already exists!")
 		}
 		return
 	}
 
 	if m.ctx.Value("verbose").(bool) {
-		util.Print("gray", "Creating migration folder...")
+		m.logger.Debug("Creating migration folder...")
 	}
 
 	os.Mkdir("migrations/"+folder, 0755)
 
-	util.Print("green", "Migration folder created successfully!")
+	m.logger.Success("Migration folder created successfully!")
 }
 
 func (m *migrationFile) createMigrationFile(folder string, path string, timestamp string) {
@@ -82,14 +83,14 @@ func (m *migrationFile) createMigrationFile(folder string, path string, timestam
 	file, err := os.Create("migrations/" + folder + "/" + strings.Join(splittedPath, "/") + ".sql")
 	defer file.Close()
 	if err != nil {
-		util.Print("red", "Error creating migration file")
+		m.logger.Fatal("Error creating migration file")
 		if m.ctx.Value("verbose").(bool) {
-			util.Print("gray", err.Error())
+			m.logger.Debug(err.Error())
 		}
 		return
 	}
 
-	util.Print("green", "Migration file created successfully!")
+	m.logger.Success("Migration file created successfully!")
 }
 
 func (m *migrationFile) createRollbackFile(folder string, path string, timestamp string) {
@@ -99,23 +100,23 @@ func (m *migrationFile) createRollbackFile(folder string, path string, timestamp
 	file, err := os.Create("migrations/" + folder + "/" + strings.Join(splittedPath, "/") + "_rollback.sql")
 	defer file.Close()
 	if err != nil {
-		util.Print("red", "Error creating rollback file")
+		m.logger.Fatal("Error creating rollback file")
 		if m.ctx.Value("verbose").(bool) {
-			util.Print("gray", err.Error())
+			m.logger.Debug(err.Error())
 		}
 		return
 	}
 
-	util.Print("green", "Rollback file created successfully!")
+	m.logger.Success("Rollback file created successfully!")
 }
 
 func (m *migrationFile) GetMigrationSQLFiles() []os.DirEntry {
 	files, err := os.ReadDir("./migrations/" + m.ctx.Value("folder").(string))
 	if err != nil {
+		m.logger.Error("Error reading migrations directory.")
 		if m.ctx.Value("verbose").(bool) {
-			util.Print("gray", err.Error())
+			m.logger.Debug(err.Error())
 		}
-		util.Print("red", "Error reading migrations directory.")
 	}
 
 	migrations := []os.DirEntry{}
