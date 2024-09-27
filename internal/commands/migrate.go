@@ -4,16 +4,14 @@ import (
 	"context"
 
 	"github.com/spf13/cobra"
-	"github.com/suritasolutions/go-migration/internal/db"
 	"github.com/suritasolutions/go-migration/internal/migration"
 	"github.com/suritasolutions/go-migration/util"
 )
 
 func NewMigrateCommand(
 	ctx context.Context,
-	db db.Database,
-	migrationFile migration.MigrationFile,
 	logger util.Logger,
+	migration migration.Migration,
 ) *cobra.Command {
 	migrateCmd := &cobra.Command{
 		Use:   "migrate",
@@ -32,13 +30,6 @@ func NewMigrateCommand(
 
 			ctx = context.WithValue(ctx, "folder", args[0])
 			ctx = context.WithValue(ctx, "database", args[1])
-
-			migration := migration.NewMigration(
-				ctx,
-				db,
-				migrationFile,
-				logger,
-			)
 
 			migration.Migrate()
 		},

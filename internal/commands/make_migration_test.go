@@ -10,9 +10,8 @@ import (
 )
 
 func TestMakeMigrationCommand(t *testing.T) {
-
-	// Test if the command fails when no arguments are provided
 	t.Run("Should return error if run with no args", func(t *testing.T) {
+		t.Parallel()
 		ctx := context.Background()
 
 		mocker := gomock.NewController(t)
@@ -32,15 +31,17 @@ func TestMakeMigrationCommand(t *testing.T) {
 		cmd.Run(cmd, args)
 	})
 
-	t.Run("Should create a new migration file", func(t *testing.T) {
+	t.Run("Should start the migration file creation", func(t *testing.T) {
+		t.Parallel()
 		ctx := context.Background()
 
 		mocker := gomock.NewController(t)
 
+		loggerMock := util.NewMockLogger(mocker)
+		loggerMock.EXPECT().Fatal("").Times(0)
+
 		migrationFileMock := migration.NewMockMigrationFile(mocker)
 		migrationFileMock.EXPECT().Create("db", "path").Times(1)
-
-		loggerMock := util.NewMockLogger(mocker)
 
 		cmd := NewMakeMigrationCommand(ctx, migrationFileMock, loggerMock)
 		args := []string{"db", "path"}

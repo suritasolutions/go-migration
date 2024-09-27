@@ -18,11 +18,25 @@ func main() {
 	rootCmd.PersistentFlags().BoolVarP(&verboseFlag, "verbose", "v", false, "verbose output")
 
 	ctx = context.WithValue(ctx, "verbose", verboseFlag)
-	logger := util.NewConsoleLogger()
-	migrationFile := migration.NewMigrationFile(ctx, logger)
+	logger := util.NewConsoleLogger(ctx)
+	standardFS := util.NewStandardFileSystem()
+	migrationFile := migration.NewMigrationFile(ctx, logger, standardFS)
+	migration := migration.NewMigration(ctx, db.NewPostgresDB(ctx), migrationFile, logger)
 
-	rootCmd.AddCommand(commands.NewMigrateCommand(ctx, db.NewPostgresDB(ctx), migrationFile, logger))
-	rootCmd.AddCommand(commands.NewMakeMigrationCommand(ctx, migrationFile, logger))
+	rootCmd.AddCommand(
+		commands.NewMigrateCommand(
+			ctx,
+			logger,
+			migration,
+		),
+	)
+	rootCmd.AddCommand(
+		commands.NewMakeMigrationCommand(
+			ctx,
+			migrationFile,
+			logger,
+		),
+	)
 
 	err := rootCmd.Execute()
 	if err != nil {

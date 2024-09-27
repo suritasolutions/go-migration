@@ -1,10 +1,12 @@
 package migration
 
-import "os"
+import (
+	"io/fs"
+)
 
 type MigrationFile interface {
 	Create(database string, path string)
-	GetMigrationSQLFiles() []os.DirEntry
-	GetMigrationFileContent(file os.DirEntry) (string, error)
+	GetMigrationSQLFiles() []fs.DirEntry
+	GetMigrationFileContent(file fs.DirEntry) (string, error)
 	DBMigrationFolderExists(folder string) bool
 }

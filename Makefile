@@ -11,6 +11,3 @@ bash:
 
 test:
 	docker compose exec cli bash -c "go test -v ./..."
-
-test-bench:
-	docker compose exec cli bash -c "go test -bench=. -benchmem ./..."

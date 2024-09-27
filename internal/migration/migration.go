@@ -14,7 +14,7 @@ func NewMigration(
 	db db.Database,
 	migrationFile MigrationFile,
 	logger util.Logger,
-) *migration {
+) Migration {
 	return &migration{ctx, db, migrationFile, logger}
 }
 
@@ -33,9 +33,7 @@ func (m *migration) Migrate() {
 
 	databaseExists, err := m.databaseExists()
 	if err != nil {
-		if m.ctx.Value("verbose").(bool) {
-			m.logger.Debug(err.Error())
-		}
+		m.logger.Debug(err.Error())
 		return
 	}
 
@@ -46,18 +44,14 @@ func (m *migration) Migrate() {
 	migrationTableExists, err := m.migrationTableExists()
 	if err != nil {
 		m.logger.Fatal("Error checking if migration table exists.")
-		if m.ctx.Value("verbose").(bool) {
-			m.logger.Debug(err.Error())
-		}
+		m.logger.Debug(err.Error())
 		return
 	}
 
 	if !migrationTableExists {
 		if err := m.createMigrationTable(); err != nil {
 			m.logger.Fatal("Error creating migration table.")
-			if m.ctx.Value("verbose").(bool) {
-				m.logger.Debug(err.Error())
-			}
+			m.logger.Debug(err.Error())
 			return
 		}
 	}
@@ -130,9 +124,7 @@ func (m *migration) createDatabase() {
 	db, err := m.db.Connect()
 	if err != nil {
 		m.logger.Fatal("Error connecting to the database.")
-		if m.ctx.Value("verbose").(bool) {
-			m.logger.Debug(err.Error())
-		}
+		m.logger.Debug(err.Error())
 		return
 	}
 	defer db.Close()
@@ -140,9 +132,7 @@ func (m *migration) createDatabase() {
 	_, err = db.Exec(m.db.GetCreateDatabaseSQL())
 	if err != nil {
 		m.logger.Fatal("Error creating database.")
-		if m.ctx.Value("verbose").(bool) {
-			m.logger.Debug(err.Error())
-		}
+		m.logger.Debug(err.Error())
 		return
 	}
 
@@ -160,9 +150,7 @@ func (m *migration) runMigrationSQLFile(file fs.DirEntry) error {
 	fileContent, err := m.migrationFile.GetMigrationFileContent(file)
 	if err != nil {
 		m.logger.Error("Error reading migration file content")
-		if m.ctx.Value("verbose").(bool) {
-			m.logger.Debug(err.Error())
-		}
+		m.logger.Debug(err.Error())
 		return err
 	}
 
@@ -174,9 +162,7 @@ func (m *migration) runMigrationSQLFile(file fs.DirEntry) error {
 		}
 
 		m.logger.Error("Error running migration")
-		if m.ctx.Value("verbose").(bool) {
-			m.logger.Debug(err.Error())
-		}
+		m.logger.Debug(err.Error())
 		return err
 	}
 
@@ -193,9 +179,7 @@ func (m *migration) registerMigrationExecutedOnMigrationsTable(fileName string) 
 	db, err := m.db.ConnectDB()
 	if err != nil {
 		m.logger.Error("Error connecting to the database")
-		if m.ctx.Value("verbose").(bool) {
-			m.logger.Debug(err.Error())
-		}
+		m.logger.Debug(err.Error())
 		return err
 	}
 	defer db.Close()
@@ -203,15 +187,11 @@ func (m *migration) registerMigrationExecutedOnMigrationsTable(fileName string) 
 	_, err = db.Exec("INSERT INTO migrations (name) VALUES ($1)", fileName)
 	if err != nil {
 		m.logger.Error("Error registering migration on migrations table")
-		if m.ctx.Value("verbose").(bool) {
-			m.logger.Debug(err.Error())
-		}
+		m.logger.Debug(err.Error())
 		return err
 	}
 
-	if m.ctx.Value("verbose").(bool) {
-		m.logger.Debug("Migration file " + fileName + " registered on migrations table")
-	}
+	m.logger.Debug("Migration file " + fileName + " registered on migrations table")
 
 	return nil
 }
